@@ -113,10 +113,12 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-        Log.d("scroll, size", Integer.toString(mPhotoGallery.size()));
-        Log.d("scroll, current", Integer.toString(mCurrentPhotoIndex));
-        displayPhoto(mCurrentPhotoPath);
+        if (mPhotoGallery.size() > 0) {
+            mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
+            Log.d("scroll, size", Integer.toString(mPhotoGallery.size()));
+            Log.d("scroll, current", Integer.toString(mCurrentPhotoIndex));
+            displayPhoto(mCurrentPhotoPath);
+        }
     }
 
     @Override
