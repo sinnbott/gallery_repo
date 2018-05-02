@@ -2,7 +2,12 @@ package com.example.myapplication;
 
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -15,7 +20,11 @@ public class UnitTests {
         assertEquals(4, 2 + 2);
     }
 
+    @Test
     public void photo_isTimestamped() {
-        assertEquals(0, 0);
+        String fileName = new FileDateStamp().getFileName();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String testDateString = dateFormat.format(new Date());
+        assertTrue(fileName.contains(testDateString));
     }
 }

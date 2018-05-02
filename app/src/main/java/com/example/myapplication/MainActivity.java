@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.example.myapplication.FileDateStamp;
+
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_ACTIVITY_SEARCH = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -219,9 +221,10 @@ public class MainActivity extends AppCompatActivity {
         return mPhotoGallery;
     }
 
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+    public File createImageFile() throws IOException {
+        String imageFileName = new FileDateStamp().getFileName();
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+//        String imageFileName = "JPEG_" + timeStamp + "_";
 //        Log.d("createImageFile f1", imageFileName);
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
