@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="283dp"
@@ -15,6 +16,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:onClick="clickPhoto"
         android:scaleType="fitEnd"
         app:layout_constraintBottom_toTopOf="@+id/btnShowSearch"
         app:layout_constraintEnd_toStartOf="@+id/btnRight"

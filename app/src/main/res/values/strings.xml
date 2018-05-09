@@ -9,7 +9,7 @@
     <string name="search_date">Date Range(mm/dd/yyyy)</string>
     <string name="search_date_start">Start</string>
     <string name="search_date_end">End</string>
-    <string name="search_location">Location</string>
+    <string name="search_location">Location (Lat/Long)</string>
     <string name="search_location_top_left">Top Left</string>
     <string name="search_location_bottom_right">Bottom Right</string>
     <string name="search_keywords">Keywords</string>
@@ -18,4 +18,8 @@
     <string name="options_database_name">Database Name</string>
     <string name="options_upload_url">Upload URL</string>
     <string name="upload_push">Upload</string>
+    <string name="keywords_description">Add keywords (keyword1, keyword2, ...)</string>
+    <string name="keywords_save">Save</string>
+    <string name="keywords_cancel">Cancel</string>
+    <string name="keywords_hint">No keywords set, try adding some!</string>
 </resources>

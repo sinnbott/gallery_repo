@@ -15,6 +15,8 @@ public class SearchActivity extends AppCompatActivity {
 
     private EditText mStartDate;
     private EditText mEndDate;
+    private EditText mStartLoc;
+    private EditText mEndLoc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,12 +24,16 @@ public class SearchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         mStartDate = findViewById(R.id.textStartDate);
         mEndDate = findViewById(R.id.textEndDate);
+        mStartLoc = findViewById(R.id.textStartLoc);
+        mEndLoc = findViewById(R.id.textEndLoc);
     }
 
     public void search (final View view) {
         Intent i = new Intent();
         i.putExtra("STARTDATE", mStartDate.getText().toString());
         i.putExtra("ENDDATE", mEndDate.getText().toString());
+        i.putExtra("LOCSTART", mStartLoc.getText().toString());
+        i.putExtra("LOCEND", mEndLoc.getText().toString());
         setResult(RESULT_OK, i);
         finish();
     }

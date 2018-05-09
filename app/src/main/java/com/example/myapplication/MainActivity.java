@@ -3,35 +3,50 @@ package com.example.myapplication;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import com.example.myapplication.FileDateStamp;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_ACTIVITY_SEARCH = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_ACTIVITY_KEYWORDS = 2;
 
     ImageView mImageView;
 
     String mCurrentPhotoPath;
     Date mStartDate;
     Date mEndDate;
+    Double[] mLocationSearch = null;
     int mCurrentPhotoIndex;
+
+    FusedLocationProviderClient mLocationClient;
+    public Location mLastLocation;
 
     ArrayList<String> mPhotoGallery;
 
@@ -43,7 +58,11 @@ public class MainActivity extends AppCompatActivity {
 
         mStartDate = new Date(0);
         mEndDate = new Date();
-        mPhotoGallery = populateGallery(mStartDate, mEndDate);
+        mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch);
+
+        mLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        getFileLocation();
 
         Log.d("onCreate, size", Integer.toString(mPhotoGallery.size()));
         if (mPhotoGallery.size() > 0) {
@@ -70,6 +89,12 @@ public class MainActivity extends AppCompatActivity {
     public void clickUpload(View view) {
         Intent uploadIntent = new Intent(this, UploadActivity.class);
         startActivity(uploadIntent);
+    }
+
+    public void clickPhoto(View view) {
+        Intent keywordIntent = new Intent(this, KeywordsActivity.class);
+        keywordIntent.putExtra("FILENAME", mCurrentPhotoPath);
+        startActivityForResult(keywordIntent, REQUEST_ACTIVITY_KEYWORDS);
     }
 
     private void dispatchTakePictureIntent() {
@@ -128,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                mPhotoGallery = populateGallery(mStartDate, mEndDate);
+                mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch);
                 Log.d("onActivityResult, size", Integer.toString(mPhotoGallery.size()));
                 int size = mPhotoGallery.size();
                 Log.d("createImageFile", "Picture Taken");
@@ -137,6 +162,17 @@ public class MainActivity extends AppCompatActivity {
 //                mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
 //                Log.d("galleryFilesCurrent", mPhotoGallery.get(mCurrentPhotoIndex));
 //                Log.d("path:2", mCurrentPhotoPath);
+
+                try {
+
+                    ExifInterface exifInterface = new ExifInterface(mCurrentPhotoPath);
+                    exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "TestVal");
+//                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LATITUDE, Double.toString(mLastLocation.getLatitude()));
+//                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, Double.toString(mLastLocation.getLongitude()));
+                    exifInterface.saveAttributes();
+                } catch (Exception e) {
+                    Log.e("onActivityResult", "error setting exif data");
+                } //ImageDescription
                 displayPhoto(mCurrentPhotoPath);
             }
         }
@@ -149,40 +185,85 @@ public class MainActivity extends AppCompatActivity {
 
                 String start  = extras.getString("STARTDATE");
                 String end  = extras.getString("ENDDATE");
+                String locStart = extras.getString("LOCSTART");
+                String locEnd = extras.getString("LOCEND");
 
                 try {
                     mStartDate = dateFormat.parse(start);
                 } catch (ParseException ex) {
-                    Log.e("search", "parse start failed: [" +start +"]");
+                    Log.e("search", "parse start date failed: [" +start +"]");
                     mStartDate = new Date(0);
                 }
 
                 try {
                     mEndDate = dateFormat.parse(end);
                 } catch (ParseException ex) {
-                    Log.e("search", "parse end failed: [" +end +"]");
+                    Log.e("search", "parse end date failed: [" +end +"]");
                     mEndDate = new Date();
+                }
+
+                try {
+                    locStart = locStart.replaceAll(" ", "");
+                    String locStartLat = locStart.split("/")[0];
+                    String locStartLong = locStart.split("/")[1];
+                    Double dLocTop = Double.parseDouble(locStartLat);
+                    Double dLocLeft = Double.parseDouble(locStartLong);
+
+                    locEnd = locEnd.replaceAll(" ", "");
+                    String locEndLat = locEnd.split("/")[0];
+                    String locEndLong = locEnd.split("/")[1];
+                    Double dLocBot = Double.parseDouble(locEndLat);
+                    Double dLocRight = Double.parseDouble(locEndLong);
+
+                    mLocationSearch = new Double[4];
+                    mLocationSearch[0] = dLocTop;
+                    mLocationSearch[1] = dLocLeft;
+                    mLocationSearch[2] = dLocBot;
+                    mLocationSearch[3] = dLocRight;
+
+                } catch (Exception e) {
+                    Log.e("onActivityResult", "Error getting location search");
+                    mLocationSearch = null;
                 }
 
                 Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
                 Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
-                populateGallery(mStartDate, mEndDate);
+                populateGallery(mStartDate, mEndDate, mLocationSearch);
                 mCurrentPhotoIndex = (mPhotoGallery.size() > 0) ? mPhotoGallery.size() - 1 : 0;
+            }
+        }
+
+        if (requestCode == REQUEST_ACTIVITY_KEYWORDS) {
+            if (resultCode == RESULT_OK) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Keywords saved...", Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
     }
 
     private void displayPhoto(String path) {
+        String exif = "";
         Log.d("displayPhoto:", path);
         mImageView.setImageBitmap(BitmapFactory.decodeFile(path));
         mImageView.setTag(path);
+        try {
+            ExifInterface exifInterface = new ExifInterface(path);
+            exif += exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+            exif += "/" + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            exif += "/" + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            Log.d("displayPhoto exif", exif);
+        } catch (Exception e) {
+            Log.e("displayPhoto", "error getting exif data");
+        }
 //        mImageView.setTag("badtag_20150808");  // adding a tag with the wrong date, like this one, will cause TakePictureTests to fail
     }
 
-    private ArrayList<String> populateGallery(Date minDate, Date maxDate) {
+    private ArrayList<String> populateGallery(Date minDate, Date maxDate, Double[] locations) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date photoDate;
         String photoDateString;
+        Double[] photoLoc;
+        Double locLat, locLong;
 
         int i = 0;
         Log.d("populateGallery dates", "[" +mStartDate +"]/[" +mEndDate +"]");
@@ -193,23 +274,35 @@ public class MainActivity extends AppCompatActivity {
         if (fList != null) {
             for(File f: file.listFiles()) {
                 photoDateString = f.getPath().split("_")[1];
+                photoLoc = null;
+                if (locations != null) {
+                    try {
+                        if (f.getPath().indexOf("_loc") > -1) {
+                            locLat = Double.parseDouble(f.getPath().split("_loc")[1].split("_")[0]);
+                            locLong = Double.parseDouble(f.getPath().split("_loc")[1].split("_")[1]);
+                            photoLoc = new Double[2];
+                            photoLoc[0] = locLat;
+                            photoLoc[1] = locLong;
+                            Log.d("populateGallery loc", "locations:" +photoLoc[0].toString() +'/' +photoLoc[1].toString());
+                        } else {
+                            Log.d("populateGallery loc", "no photo location");
+                        }
+                    } catch (Exception e) {
+                        Log.d("populateGallery loc", "photo location parse failed");
+                        photoLoc = null;
+                    }
+
+                }
 //                if (i == 0) {
                     Log.d("populateGallery", "min:[" + dateFormat.format(minDate) + "]  "
                             + "max:[" + dateFormat.format(maxDate) + "]  "
                             + "current:[" + photoDateString + "]");
                     try {
                         photoDate = dateFormat.parse(photoDateString);
-                        if ( minDate.before(photoDate) || minDate.equals(photoDate) ) {
-                            if ( maxDate.after(photoDate) || maxDate.equals(photoDate) ) {
-                                mPhotoGallery.add(f.getPath());
-//                                Log.d("populateGallery", "dateFits:[" +photoDateString +"]");
-                            } else {
-//                              Log.d("populateGallery", "photo:[" +photoDateString +"] after [" +dateFormat.format(maxDate) +"]");
-                            }
-                        } else {
-//                            Log.d("populateGallery", "photo:[" +photoDateString +"] before [" +dateFormat.format(minDate) +"]");
+                        if ( dateFits(photoDate, minDate, maxDate) ) {
+                            if ( locations == null || ( locations != null && photoLoc != null && locationFits(locations, photoLoc) ))
+                            mPhotoGallery.add(f.getPath());
                         }
-
                     } catch (ParseException ex) {
                         Log.e("populateGallery", "DATE PARSE FAILED: " +f.getPath());
                     }
@@ -222,7 +315,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public File createImageFile() throws IOException {
+        getFileLocation();
         String imageFileName = new FileDateStamp().getFileName();
+        imageFileName += getLocationString();
+
 //        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 //        String imageFileName = "JPEG_" + timeStamp + "_";
 //        Log.d("createImageFile f1", imageFileName);
@@ -232,8 +328,67 @@ public class MainActivity extends AppCompatActivity {
                 ".jpg",
                 storageDir
         );
+
         mCurrentPhotoPath = image.getAbsolutePath();
         Log.d("createImageFile path:", mCurrentPhotoPath);
         return image;
     }
+
+    public void getFileLocation() {
+        try {
+            mLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location.  In some rare situations this can be nullllll...
+                            if (location != null) {
+                                //Logic to handle location object
+                                Log.d("getFileLocation lat", Double.toString(location.getLatitude()));
+                                Log.d("getFileLocation long", Double.toString(location.getLongitude()));
+                                mLastLocation = location;
+                            } else {
+                                Log.d("getFileLocation", "LOCATION NULL");
+                            }
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.e("getFileLocation", "ACCESS_COARSE_LOCATION NOT GRANTED");
+        }
+    }
+
+    public String getLocationString() {
+        String loc = "";
+
+        if (mLastLocation != null) {
+            loc += "_loc" +Double.toString(mLastLocation.getLatitude()) +"_" +Double.toString(mLastLocation.getLongitude()) +"_";
+        }
+
+        Log.d("getLocationString", loc);
+
+        return loc;
+    }
+
+    public boolean dateFits(Date photoDate, Date minDate, Date maxDate) {
+        if ( minDate.before(photoDate) || minDate.equals(photoDate) ) {
+            if ( maxDate.after(photoDate) || maxDate.equals(photoDate) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean locationFits(Double[] locationSearch, Double[] photoLocation) {
+        if (locationSearch == null) {
+            return true;
+        }
+        else if (photoLocation != null) {
+            if    (photoLocation[0] >= locationSearch[2] && photoLocation[0] <= locationSearch[0]) {
+                if (photoLocation[1] >= locationSearch[1] && photoLocation[1] <= locationSearch[3]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }
