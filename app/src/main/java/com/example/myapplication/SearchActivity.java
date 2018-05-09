@@ -17,6 +17,7 @@ public class SearchActivity extends AppCompatActivity {
     private EditText mEndDate;
     private EditText mStartLoc;
     private EditText mEndLoc;
+    private EditText mKeywords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +27,7 @@ public class SearchActivity extends AppCompatActivity {
         mEndDate = findViewById(R.id.textEndDate);
         mStartLoc = findViewById(R.id.textStartLoc);
         mEndLoc = findViewById(R.id.textEndLoc);
+        mKeywords = findViewById(R.id.textKeywordSearch);
     }
 
     public void search (final View view) {
@@ -34,6 +36,7 @@ public class SearchActivity extends AppCompatActivity {
         i.putExtra("ENDDATE", mEndDate.getText().toString());
         i.putExtra("LOCSTART", mStartLoc.getText().toString());
         i.putExtra("LOCEND", mEndLoc.getText().toString());
+        i.putExtra("KEYWORDS", mKeywords.getText().toString());
         setResult(RESULT_OK, i);
         finish();
     }

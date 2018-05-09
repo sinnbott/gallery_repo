@@ -13,6 +13,7 @@
     <string name="search_location_top_left">Top Left</string>
     <string name="search_location_bottom_right">Bottom Right</string>
     <string name="search_keywords">Keywords</string>
+    <string name="search_keywords_hint">(keyword1, keyword2, ...)</string>
     <string name="search_go">Go!</string>
     <string name="options_file_path">File Path</string>
     <string name="options_database_name">Database Name</string>

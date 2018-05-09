@@ -101,7 +101,7 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
+            android:text="@string/search_keywords"
             android:textSize="20sp" />
 
         <EditText
@@ -109,8 +109,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:inputType="textMultiLine"
-            android:singleLine="false" />
+            android:hint="@string/search_keywords_hint"
+            android:inputType="text" />
 
     </LinearLayout>
 

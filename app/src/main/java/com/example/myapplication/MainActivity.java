@@ -43,7 +43,9 @@ public class MainActivity extends AppCompatActivity {
     Date mStartDate;
     Date mEndDate;
     Double[] mLocationSearch = null;
+    String[] mKeywordSearch = null;
     int mCurrentPhotoIndex;
+
 
     FusedLocationProviderClient mLocationClient;
     public Location mLastLocation;
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         mStartDate = new Date(0);
         mEndDate = new Date();
-        mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch);
+        mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch, null);
 
         mLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -153,26 +155,22 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch);
+                mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch, null);
                 Log.d("onActivityResult, size", Integer.toString(mPhotoGallery.size()));
                 int size = mPhotoGallery.size();
                 Log.d("createImageFile", "Picture Taken");
                 mCurrentPhotoIndex = size - 1;
-//                Log.d("galleryFiles2", mPhotoGallery.toString());
-//                mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-//                Log.d("galleryFilesCurrent", mPhotoGallery.get(mCurrentPhotoIndex));
-//                Log.d("path:2", mCurrentPhotoPath);
 
-                try {
+//                try {
 
-                    ExifInterface exifInterface = new ExifInterface(mCurrentPhotoPath);
-                    exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "TestVal");
+//                    ExifInterface exifInterface = new ExifInterface(mCurrentPhotoPath);
+//                    exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "TestVal");
 //                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LATITUDE, Double.toString(mLastLocation.getLatitude()));
 //                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, Double.toString(mLastLocation.getLongitude()));
-                    exifInterface.saveAttributes();
-                } catch (Exception e) {
-                    Log.e("onActivityResult", "error setting exif data");
-                } //ImageDescription
+//                    exifInterface.saveAttributes();
+//                } catch (Exception e) {
+//                    Log.e("onActivityResult", "error setting exif data");
+//                } //ImageDescription
                 displayPhoto(mCurrentPhotoPath);
             }
         }
@@ -187,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                 String end  = extras.getString("ENDDATE");
                 String locStart = extras.getString("LOCSTART");
                 String locEnd = extras.getString("LOCEND");
+                String keywords = extras.getString("KEYWORDS");
 
                 try {
                     mStartDate = dateFormat.parse(start);
@@ -226,10 +225,19 @@ public class MainActivity extends AppCompatActivity {
                     mLocationSearch = null;
                 }
 
+                mKeywordSearch = keywords.split(",");
+                for (int i = 0; i < mKeywordSearch.length; i++) {
+                    mKeywordSearch[i] = mKeywordSearch[i].trim();
+                    Log.d("Keywords...", mKeywordSearch[i]);
+                }
+
                 Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
                 Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
-                populateGallery(mStartDate, mEndDate, mLocationSearch);
+
+                populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
                 mCurrentPhotoIndex = (mPhotoGallery.size() > 0) ? mPhotoGallery.size() - 1 : 0;
+                mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
+                displayPhoto(mCurrentPhotoPath);
             }
         }
 
@@ -246,19 +254,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d("displayPhoto:", path);
         mImageView.setImageBitmap(BitmapFactory.decodeFile(path));
         mImageView.setTag(path);
-        try {
-            ExifInterface exifInterface = new ExifInterface(path);
-            exif += exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-            exif += "/" + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-            exif += "/" + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-            Log.d("displayPhoto exif", exif);
-        } catch (Exception e) {
-            Log.e("displayPhoto", "error getting exif data");
-        }
-//        mImageView.setTag("badtag_20150808");  // adding a tag with the wrong date, like this one, will cause TakePictureTests to fail
     }
 
-    private ArrayList<String> populateGallery(Date minDate, Date maxDate, Double[] locations) {
+    private ArrayList<String> populateGallery(Date minDate, Date maxDate, Double[] locations, String[] keywords) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date photoDate;
         String photoDateString;
@@ -301,7 +299,9 @@ public class MainActivity extends AppCompatActivity {
                         photoDate = dateFormat.parse(photoDateString);
                         if ( dateFits(photoDate, minDate, maxDate) ) {
                             if ( locations == null || ( locations != null && photoLoc != null && locationFits(locations, photoLoc) ))
-                            mPhotoGallery.add(f.getPath());
+                                if (keywordFits(keywords, f.getPath())) {
+                                    mPhotoGallery.add(f.getPath());
+                            }
                         }
                     } catch (ParseException ex) {
                         Log.e("populateGallery", "DATE PARSE FAILED: " +f.getPath());
@@ -388,6 +388,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+        return false;
+    }
+
+    public boolean keywordFits(String[] keywords, String photoPath) {
+        if (keywords == null || keywords.length == 0) {
+            return true;
+        } else {
+            try {
+                ExifInterface exifInterface = new ExifInterface(photoPath);
+                String imageDesc = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
+                Log.e("keywordFits desc", imageDesc);
+                for (int i = 0; i < keywords.length; i++) {
+                    if (imageDesc.contains(keywords[i])) {
+                        return true;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("keywordFits", "error getting image exif data");
+                return false;
+            }
+        }
+
         return false;
     }
 
