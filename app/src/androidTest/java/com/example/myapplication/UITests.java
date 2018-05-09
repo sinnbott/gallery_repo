@@ -32,13 +32,23 @@ public class UITests {
             new ActivityTestRule<>(MainActivity.class);
 
     @Test
-    public void TestFilter() {
+    public void TestFilterDate() {
         onView(withId(R.id.btnShowSearch)).perform(click());
         onView(withId(R.id.textStartDate)).perform(typeText("05/01/2018"), closeSoftKeyboard());
         onView(withId(R.id.textEndDate)).perform(typeText("05/05/2018"), closeSoftKeyboard());
         onView(withId(R.id.btnSearch)).perform(click());
         for (int i = 0; i <= 5; i++) {
             onView(withId(R.id.btnLeft)).perform(click());
+        }
+    }
+
+    @Test public void TestFilterLocation() {
+        onView(withId(R.id.btnShowSearch)).perform(click());
+        onView(withId(R.id.textStartLoc)).perform(typeText("-300/-300"), closeSoftKeyboard());
+        onView(withId(R.id.textEndLoc)).perform(typeText("300/300"), closeSoftKeyboard());
+        onView(withId(R.id.btnSearch)).perform(click());
+        for (int i = 0; i <= 5; i++) {
+            onView(withId(R.id.btnRight)).perform(click());
         }
     }
 }

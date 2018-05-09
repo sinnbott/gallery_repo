@@ -17,7 +17,10 @@ import org.junit.runner.RunWith;
 
 import static android.app.Instrumentation.ActivityResult;
 import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.clearText;
 import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.intent.Intents.intending;
 import static android.support.test.espresso.intent.matcher.IntentMatchers.hasAction;
@@ -52,6 +55,33 @@ public class TakePictureTests {
         onView(withId(R.id.imageView)).check(matches(hasTag()));
 
         onView(withId(R.id.imageView)).check(matches(hasDrawable()));
+    }
+
+    @Test
+    public void testAddKeywords() {
+        onView(withId(R.id.imageView)).perform(click());
+
+        onView(withId(R.id.textKeywordEntry)).perform(typeText("testkeyword1"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSave)).perform(click());
+    }
+
+    @Test
+    public void testRemoveKeywords() {
+        onView(withId(R.id.imageView)).perform(click());
+
+        onView(withId(R.id.textKeywordEntry)).perform(clearText(), closeSoftKeyboard());
+
+        onView(withId(R.id.btnSave)).perform(click());
+    }
+
+    @Test
+    public void testCancelKeywords() {
+        onView(withId(R.id.imageView)).perform(click());
+
+        onView(withId(R.id.textKeywordEntry)).perform(typeText("thesekeywordswillnotbesaved"), closeSoftKeyboard());
+
+        onView(withId(R.id.btnCancel)).perform(click());
     }
 
     private ActivityResult createImageCaptureStub() {

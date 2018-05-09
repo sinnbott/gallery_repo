@@ -235,9 +235,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
 
                 populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
-                mCurrentPhotoIndex = (mPhotoGallery.size() > 0) ? mPhotoGallery.size() - 1 : 0;
-                mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-                displayPhoto(mCurrentPhotoPath);
+
+                if (mPhotoGallery.size() > 0) {
+                    mCurrentPhotoIndex = mPhotoGallery.size() - 1;
+                    mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
+                    displayPhoto(mCurrentPhotoPath);
+                }
             }
         }
 
@@ -398,7 +401,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ExifInterface exifInterface = new ExifInterface(photoPath);
                 String imageDesc = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-                Log.e("keywordFits desc", imageDesc);
                 for (int i = 0; i < keywords.length; i++) {
                     if (imageDesc.contains(keywords[i])) {
                         return true;
