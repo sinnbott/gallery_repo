@@ -51,4 +51,14 @@ public class UITests {
             onView(withId(R.id.btnRight)).perform(click());
         }
     }
+
+    @Test
+    public void TestKeywordFilter() {
+        onView(withId(R.id.btnShowSearch)).perform(click());
+        onView(withId(R.id.textKeywordSearch)).perform(typeText("testval"), closeSoftKeyboard());
+        onView(withId(R.id.btnSearch)).perform(click());
+        for (int i = 0; i <= 5; i++) {
+            onView(withId(R.id.btnLeft)).perform(click());
+        }
+    }
 }

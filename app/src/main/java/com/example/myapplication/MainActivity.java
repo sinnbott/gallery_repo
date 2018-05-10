@@ -150,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
                 mKeywordSearch = null;
                 storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
                 showPicture();
+                Toast toast = Toast.makeText(getApplicationContext(), "Tap picture to add caption", Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
         if (requestCode == REQUEST_ACTIVITY_SEARCH) {
