@@ -1,14 +1,11 @@
 package com.example.myapplication;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,23 +16,23 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import com.example.myapplication.FileDateStamp;
+import com.example.mydb.FileSystemDataStore;
+import com.example.mydb.IDataStore;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_ACTIVITY_SEARCH = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_ACTIVITY_KEYWORDS = 2;
+
+    IDataStore storage;
 
     ImageView mImageView;
 
@@ -56,22 +53,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mImageView = findViewById(R.id.imageView);
 
         mStartDate = new Date(0);
         mEndDate = new Date();
-        mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch, null);
+
+        storage = new FileSystemDataStore();
+        mKeywordSearch = null;
+        storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
 
         mLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         getFileLocation();
 
-        Log.d("onCreate, size", Integer.toString(mPhotoGallery.size()));
-        if (mPhotoGallery.size() > 0) {
-            mCurrentPhotoIndex = mPhotoGallery.size() - 1;
-            mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-            displayPhoto(mCurrentPhotoPath);
-        }
+        showPicture();
     }
 
     public void clickSnap(View view) {
@@ -95,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void clickPhoto(View view) {
         Intent keywordIntent = new Intent(this, KeywordsActivity.class);
-        keywordIntent.putExtra("FILENAME", mCurrentPhotoPath);
+        keywordIntent.putExtra("FILENAME", storage.getPicture());
         startActivityForResult(keywordIntent, REQUEST_ACTIVITY_KEYWORDS);
     }
 
@@ -132,22 +128,15 @@ public class MainActivity extends AppCompatActivity {
     public void scrollClick(View view) {
         switch (view.getId()) {
             case R.id.btnLeft:
-                if (mCurrentPhotoIndex > 0)
-                    --mCurrentPhotoIndex;
+                storage.previousPicture();
                 break;
             case R.id.btnRight:
-                if (mCurrentPhotoIndex < (mPhotoGallery.size() - 1))
-                    ++mCurrentPhotoIndex;
+                storage.nextPicture();
                 break;
             default:
                 break;
         }
-        if (mPhotoGallery.size() > 0) {
-            mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-            Log.d("scroll, size", Integer.toString(mPhotoGallery.size()));
-            Log.d("scroll, current", Integer.toString(mCurrentPhotoIndex));
-            displayPhoto(mCurrentPhotoPath);
-        }
+        showPicture();
     }
 
     @Override
@@ -155,23 +144,12 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                mPhotoGallery = populateGallery(mStartDate, mEndDate, mLocationSearch, null);
-                Log.d("onActivityResult, size", Integer.toString(mPhotoGallery.size()));
-                int size = mPhotoGallery.size();
-                Log.d("createImageFile", "Picture Taken");
-                mCurrentPhotoIndex = size - 1;
-
-//                try {
-
-//                    ExifInterface exifInterface = new ExifInterface(mCurrentPhotoPath);
-//                    exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "TestVal");
-//                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LATITUDE, Double.toString(mLastLocation.getLatitude()));
-//                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, Double.toString(mLastLocation.getLongitude()));
-//                    exifInterface.saveAttributes();
-//                } catch (Exception e) {
-//                    Log.e("onActivityResult", "error setting exif data");
-//                } //ImageDescription
-                displayPhoto(mCurrentPhotoPath);
+                mStartDate = new Date(0);
+                mEndDate = new Date();
+                mLocationSearch = null;
+                mKeywordSearch = null;
+                storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+                showPicture();
             }
         }
         if (requestCode == REQUEST_ACTIVITY_SEARCH) {
@@ -226,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 mKeywordSearch = keywords.split(",");
+                if (mKeywordSearch.length == 1 && mKeywordSearch[0].equals(""))
+                    mKeywordSearch = new String[0];
                 for (int i = 0; i < mKeywordSearch.length; i++) {
                     mKeywordSearch[i] = mKeywordSearch[i].trim();
                     Log.d("Keywords...", mKeywordSearch[i]);
@@ -234,13 +214,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
                 Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
 
-                populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
-
-                if (mPhotoGallery.size() > 0) {
-                    mCurrentPhotoIndex = mPhotoGallery.size() - 1;
-                    mCurrentPhotoPath = mPhotoGallery.get(mCurrentPhotoIndex);
-                    displayPhoto(mCurrentPhotoPath);
-                }
+//                populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+                storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+                showPicture();
             }
         }
 
@@ -248,92 +224,36 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Toast toast = Toast.makeText(getApplicationContext(), "Keywords saved...", Toast.LENGTH_SHORT);
                 toast.show();
+            } else if (resultCode != RESULT_CANCELED) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Error saving keywords...", Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
     }
 
-    private void displayPhoto(String path) {
-        String exif = "";
-        Log.d("displayPhoto:", path);
-        mImageView.setImageBitmap(BitmapFactory.decodeFile(path));
-        mImageView.setTag(path);
-    }
+    private void showPicture() {
+        String picture = storage.getPicture();
+        mImageView.setImageBitmap(BitmapFactory.decodeFile(picture));
+        mImageView.setTag(picture);
 
-    private ArrayList<String> populateGallery(Date minDate, Date maxDate, Double[] locations, String[] keywords) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Date photoDate;
-        String photoDateString;
-        Double[] photoLoc;
-        Double locLat, locLong;
-
-        int i = 0;
-        Log.d("populateGallery dates", "[" +mStartDate +"]/[" +mEndDate +"]");
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),
-                "/Android/data/com.example.myapplication/files/Pictures");
-        mPhotoGallery = new ArrayList<String>();
-        File[] fList = file.listFiles();
-        if (fList != null) {
-            for(File f: file.listFiles()) {
-                photoDateString = f.getPath().split("_")[1];
-                photoLoc = null;
-                if (locations != null) {
-                    try {
-                        if (f.getPath().indexOf("_loc") > -1) {
-                            locLat = Double.parseDouble(f.getPath().split("_loc")[1].split("_")[0]);
-                            locLong = Double.parseDouble(f.getPath().split("_loc")[1].split("_")[1]);
-                            photoLoc = new Double[2];
-                            photoLoc[0] = locLat;
-                            photoLoc[1] = locLong;
-                            Log.d("populateGallery loc", "locations:" +photoLoc[0].toString() +'/' +photoLoc[1].toString());
-                        } else {
-                            Log.d("populateGallery loc", "no photo location");
-                        }
-                    } catch (Exception e) {
-                        Log.d("populateGallery loc", "photo location parse failed");
-                        photoLoc = null;
-                    }
-
-                }
-//                if (i == 0) {
-                    Log.d("populateGallery", "min:[" + dateFormat.format(minDate) + "]  "
-                            + "max:[" + dateFormat.format(maxDate) + "]  "
-                            + "current:[" + photoDateString + "]");
-                    try {
-                        photoDate = dateFormat.parse(photoDateString);
-                        if ( dateFits(photoDate, minDate, maxDate) ) {
-                            if ( locations == null || ( locations != null && photoLoc != null && locationFits(locations, photoLoc) ))
-                                if (keywordFits(keywords, f.getPath())) {
-                                    mPhotoGallery.add(f.getPath());
-                            }
-                        }
-                    } catch (ParseException ex) {
-                        Log.e("populateGallery", "DATE PARSE FAILED: " +f.getPath());
-                    }
-//                }
-                i++;
-            }
+        Log.d("showPicture:", picture);
+        if (!picture.equals("")) {
+            mImageView.setImageBitmap(BitmapFactory.decodeFile(picture));
+            mImageView.setTag(picture);
         }
-        Log.d("populateGallery", "finalCount" +Integer.toString(mPhotoGallery.size()));
-        return mPhotoGallery;
     }
 
     public File createImageFile() throws IOException {
         getFileLocation();
-        String imageFileName = new FileDateStamp().getFileName();
-        imageFileName += getLocationString();
+        String location = getLocationString();
+        String filename = storage.createNewPicture(location);
 
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        String imageFileName = "JPEG_" + timeStamp + "_";
-//        Log.d("createImageFile f1", imageFileName);
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
-                imageFileName,
+                filename,
                 ".jpg",
                 storageDir
         );
-
-        mCurrentPhotoPath = image.getAbsolutePath();
-        Log.d("createImageFile path:", mCurrentPhotoPath);
         return image;
     }
 
@@ -370,49 +290,4 @@ public class MainActivity extends AppCompatActivity {
 
         return loc;
     }
-
-    public boolean dateFits(Date photoDate, Date minDate, Date maxDate) {
-        if ( minDate.before(photoDate) || minDate.equals(photoDate) ) {
-            if ( maxDate.after(photoDate) || maxDate.equals(photoDate) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean locationFits(Double[] locationSearch, Double[] photoLocation) {
-        if (locationSearch == null) {
-            return true;
-        }
-        else if (photoLocation != null) {
-            if    (photoLocation[0] >= locationSearch[2] && photoLocation[0] <= locationSearch[0]) {
-                if (photoLocation[1] >= locationSearch[1] && photoLocation[1] <= locationSearch[3]) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean keywordFits(String[] keywords, String photoPath) {
-        if (keywords == null || keywords.length == 0) {
-            return true;
-        } else {
-            try {
-                ExifInterface exifInterface = new ExifInterface(photoPath);
-                String imageDesc = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-                for (int i = 0; i < keywords.length; i++) {
-                    if (imageDesc.contains(keywords[i])) {
-                        return true;
-                    }
-                }
-            } catch (Exception e) {
-                Log.e("keywordFits", "error getting image exif data");
-                return false;
-            }
-        }
-
-        return false;
-    }
-
 }

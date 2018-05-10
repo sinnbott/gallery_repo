@@ -9,52 +9,37 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.mydb.FileSystemDataStore;
+import com.example.mydb.IDataStore;
+
 public class KeywordsActivity extends AppCompatActivity {
 
     EditText mTextKeywords;
     String mPhotoPath;
+    IDataStore storage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_keywords);
+        storage = new FileSystemDataStore();
 
         mTextKeywords = findViewById(R.id.textKeywordEntry);
         Intent intent = getIntent();
         mPhotoPath = intent.getStringExtra("FILENAME");
 
-        try {
-            ExifInterface exifInterface = new ExifInterface(mPhotoPath);
-            String keywords = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
-            mTextKeywords.setText(keywords);
-        } catch (Exception e) {
-            Log.e("onCreate", "error getting exif data");
-        } //ImageDescription
-    }
-
-    public void save() {
-//        try {
-//
-//            ExifInterface exifInterface = new ExifInterface(mCurrentPhotoPath);
-//            exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, "TestVal");
-////                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LATITUDE, Double.toString(mLastLocation.getLatitude()));
-////                    exifInterface.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, Double.toString(mLastLocation.getLongitude()));
-//            exifInterface.saveAttributes();
-//        } catch (Exception e) {
-//            Log.e("onActivityResult", "error setting exif data");
-//        } //ImageDescription
+        String keywords = storage.getKeywords(mPhotoPath);
+        mTextKeywords.setText(keywords);
     }
 
     public void save (final View view) {
-        try {
-            ExifInterface exifInterface = new ExifInterface(mPhotoPath);
-            exifInterface.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, mTextKeywords.getText().toString());
-            exifInterface.saveAttributes();
-        } catch (Exception e) {
-            Log.e("save", "error saving exif image description");
-        }
+        String keywords = mTextKeywords.getText().toString();
+        boolean saved = storage.savePicture(mPhotoPath, keywords);
+
         Intent i = new Intent();
-        setResult(RESULT_OK, i);
+        if (saved)
+            setResult(RESULT_OK, i);
+
         finish();
     }
 
