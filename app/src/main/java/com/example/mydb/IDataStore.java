@@ -1,16 +1,23 @@
 package com.example.mydb;
 
+import android.location.Location;
+import android.os.Bundle;
+
 import java.util.Date;
 
 public interface IDataStore {
     String getPicture();
     boolean savePicture(String _picture, String keywords);
-    String createNewPicture(String location);
+    String createNewPicture(Date now, Location location);
     void nextPicture();
     void previousPicture();
-    void populateGallery(Date minDate, Date maxDate, Double[] locations, String[] keywords);
+    void populateGallery(Bundle params);
+    void setSearchParams(Bundle params);
+    void setSearchLocations(String topLeft, String botRight);
+    void setSearchKeywords(String keywords);
+    void setSearchDates(String start, String end);
     String getKeywords(String _picture);
-    boolean searchDate(Date picDate, Date minDate, Date maxDate);
-    boolean searchLocation(Double[] locationSearch, Double[] picLoc);
-    boolean searchKeywords(String[] keywords, String picPath);
+    boolean searchDate(String picPath);
+    boolean searchLocation(String picPath);
+    boolean searchKeywords(String picPath);
 }

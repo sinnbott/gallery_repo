@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         storage = new FileSystemDataStore();
         mKeywordSearch = null;
-        storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+        storage.populateGallery(null);
 
         mLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 mEndDate = new Date();
                 mLocationSearch = null;
                 mKeywordSearch = null;
-                storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+                storage.populateGallery(null);
                 showPicture();
                 Toast toast = Toast.makeText(getApplicationContext(), "Tap picture to add caption", Toast.LENGTH_SHORT);
                 toast.show();
@@ -159,65 +159,65 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
 
-                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-
-                String start  = extras.getString("STARTDATE");
-                String end  = extras.getString("ENDDATE");
-                String locStart = extras.getString("LOCSTART");
-                String locEnd = extras.getString("LOCEND");
-                String keywords = extras.getString("KEYWORDS");
-
-                try {
-                    mStartDate = dateFormat.parse(start);
-                } catch (ParseException ex) {
-                    Log.e("search", "parse start date failed: [" +start +"]");
-                    mStartDate = new Date(0);
-                }
-
-                try {
-                    mEndDate = dateFormat.parse(end);
-                } catch (ParseException ex) {
-                    Log.e("search", "parse end date failed: [" +end +"]");
-                    mEndDate = new Date();
-                }
-
-                try {
-                    locStart = locStart.replaceAll(" ", "");
-                    String locStartLat = locStart.split("/")[0];
-                    String locStartLong = locStart.split("/")[1];
-                    Double dLocTop = Double.parseDouble(locStartLat);
-                    Double dLocLeft = Double.parseDouble(locStartLong);
-
-                    locEnd = locEnd.replaceAll(" ", "");
-                    String locEndLat = locEnd.split("/")[0];
-                    String locEndLong = locEnd.split("/")[1];
-                    Double dLocBot = Double.parseDouble(locEndLat);
-                    Double dLocRight = Double.parseDouble(locEndLong);
-
-                    mLocationSearch = new Double[4];
-                    mLocationSearch[0] = dLocTop;
-                    mLocationSearch[1] = dLocLeft;
-                    mLocationSearch[2] = dLocBot;
-                    mLocationSearch[3] = dLocRight;
-
-                } catch (Exception e) {
-                    Log.e("onActivityResult", "Error getting location search");
-                    mLocationSearch = null;
-                }
-
-                mKeywordSearch = keywords.split(",");
-                if (mKeywordSearch.length == 1 && mKeywordSearch[0].equals(""))
-                    mKeywordSearch = new String[0];
-                for (int i = 0; i < mKeywordSearch.length; i++) {
-                    mKeywordSearch[i] = mKeywordSearch[i].trim();
-                    Log.d("Keywords...", mKeywordSearch[i]);
-                }
-
-                Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
-                Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
+//                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+//
+//                String start  = extras.getString("STARTDATE");
+//                String end  = extras.getString("ENDDATE");
+//                String locStart = extras.getString("LOCSTART");
+//                String locEnd = extras.getString("LOCEND");
+//                String keywords = extras.getString("KEYWORDS");
+//
+//                try {
+//                    mStartDate = dateFormat.parse(start);
+//                } catch (ParseException ex) {
+//                    Log.e("search", "parse start date failed: [" +start +"]");
+//                    mStartDate = new Date(0);
+//                }
+//
+//                try {
+//                    mEndDate = dateFormat.parse(end);
+//                } catch (ParseException ex) {
+//                    Log.e("search", "parse end date failed: [" +end +"]");
+//                    mEndDate = new Date();
+//                }
+//
+//                try {
+//                    locStart = locStart.replaceAll(" ", "");
+//                    String locStartLat = locStart.split("/")[0];
+//                    String locStartLong = locStart.split("/")[1];
+//                    Double dLocTop = Double.parseDouble(locStartLat);
+//                    Double dLocLeft = Double.parseDouble(locStartLong);
+//
+//                    locEnd = locEnd.replaceAll(" ", "");
+//                    String locEndLat = locEnd.split("/")[0];
+//                    String locEndLong = locEnd.split("/")[1];
+//                    Double dLocBot = Double.parseDouble(locEndLat);
+//                    Double dLocRight = Double.parseDouble(locEndLong);
+//
+//                    mLocationSearch = new Double[4];
+//                    mLocationSearch[0] = dLocTop;
+//                    mLocationSearch[1] = dLocLeft;
+//                    mLocationSearch[2] = dLocBot;
+//                    mLocationSearch[3] = dLocRight;
+//
+//                } catch (Exception e) {
+//                    Log.e("onActivityResult", "Error getting location search");
+//                    mLocationSearch = null;
+//                }
+//
+//                mKeywordSearch = keywords.split(",");
+//                if (mKeywordSearch.length == 1 && mKeywordSearch[0].equals(""))
+//                    mKeywordSearch = new String[0];
+//                for (int i = 0; i < mKeywordSearch.length; i++) {
+//                    mKeywordSearch[i] = mKeywordSearch[i].trim();
+//                    Log.d("Keywords...", mKeywordSearch[i]);
+//                }
+//
+//                Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
+//                Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
 
 //                populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
-                storage.populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
+                storage.populateGallery(extras);
                 showPicture();
             }
         }
@@ -247,8 +247,9 @@ public class MainActivity extends AppCompatActivity {
 
     public File createImageFile() throws IOException {
         getFileLocation();
-        String location = getLocationString();
-        String filename = storage.createNewPicture(location);
+        Date now = new Date();
+//        String location = getLocationString();
+        String filename = storage.createNewPicture(now, mLastLocation);
 
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
