@@ -3,11 +3,13 @@ package com.example.mydb;
 import android.location.Location;
 import android.os.Bundle;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public interface IDataStore {
     String getPicture();
     boolean savePicture(String _picture, String keywords);
+    ArrayList<String> getPictures();
     String createNewPicture(Date now, Location location);
     void nextPicture();
     void previousPicture();

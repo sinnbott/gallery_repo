@@ -95,6 +95,11 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(keywordIntent, REQUEST_ACTIVITY_KEYWORDS);
     }
 
+    public void clickMulti(View view) {
+        Intent multiIntent = new Intent(this, MultiActivity.class);
+        startActivity(multiIntent);
+    }
+
     private void dispatchTakePictureIntent() {
 //        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -109,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                Log.e("File Creation", "Failed");
+//                Log.e("File Creation", "Failed");
             }
 
 //            Log.d("createImageFile f2:", photoFile.getAbsolutePath());
@@ -155,68 +160,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (requestCode == REQUEST_ACTIVITY_SEARCH) {
-            Log.d("onActivityResult", "REQUEST_ACTIVITY_SEARCH");
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
 
-//                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-//
-//                String start  = extras.getString("STARTDATE");
-//                String end  = extras.getString("ENDDATE");
-//                String locStart = extras.getString("LOCSTART");
-//                String locEnd = extras.getString("LOCEND");
-//                String keywords = extras.getString("KEYWORDS");
-//
-//                try {
-//                    mStartDate = dateFormat.parse(start);
-//                } catch (ParseException ex) {
-//                    Log.e("search", "parse start date failed: [" +start +"]");
-//                    mStartDate = new Date(0);
-//                }
-//
-//                try {
-//                    mEndDate = dateFormat.parse(end);
-//                } catch (ParseException ex) {
-//                    Log.e("search", "parse end date failed: [" +end +"]");
-//                    mEndDate = new Date();
-//                }
-//
-//                try {
-//                    locStart = locStart.replaceAll(" ", "");
-//                    String locStartLat = locStart.split("/")[0];
-//                    String locStartLong = locStart.split("/")[1];
-//                    Double dLocTop = Double.parseDouble(locStartLat);
-//                    Double dLocLeft = Double.parseDouble(locStartLong);
-//
-//                    locEnd = locEnd.replaceAll(" ", "");
-//                    String locEndLat = locEnd.split("/")[0];
-//                    String locEndLong = locEnd.split("/")[1];
-//                    Double dLocBot = Double.parseDouble(locEndLat);
-//                    Double dLocRight = Double.parseDouble(locEndLong);
-//
-//                    mLocationSearch = new Double[4];
-//                    mLocationSearch[0] = dLocTop;
-//                    mLocationSearch[1] = dLocLeft;
-//                    mLocationSearch[2] = dLocBot;
-//                    mLocationSearch[3] = dLocRight;
-//
-//                } catch (Exception e) {
-//                    Log.e("onActivityResult", "Error getting location search");
-//                    mLocationSearch = null;
-//                }
-//
-//                mKeywordSearch = keywords.split(",");
-//                if (mKeywordSearch.length == 1 && mKeywordSearch[0].equals(""))
-//                    mKeywordSearch = new String[0];
-//                for (int i = 0; i < mKeywordSearch.length; i++) {
-//                    mKeywordSearch[i] = mKeywordSearch[i].trim();
-//                    Log.d("Keywords...", mKeywordSearch[i]);
-//                }
-//
-//                Log.d("onActivityResult", "strings: [" +start +"]/[" +end +"]");
-//                Log.d("onActivityResult", "dates: [" +dateFormat.format(mStartDate) +"]/[" +dateFormat.format(mEndDate) +"]");
-
-//                populateGallery(mStartDate, mEndDate, mLocationSearch, mKeywordSearch);
                 storage.populateGallery(extras);
                 showPicture();
             }
@@ -269,8 +215,8 @@ public class MainActivity extends AppCompatActivity {
                             // Got last known location.  In some rare situations this can be nullllll...
                             if (location != null) {
                                 //Logic to handle location object
-                                Log.d("getFileLocation lat", Double.toString(location.getLatitude()));
-                                Log.d("getFileLocation long", Double.toString(location.getLongitude()));
+//                                Log.d("getFileLocation lat", Double.toString(location.getLatitude()));
+//                                Log.d("getFileLocation long", Double.toString(location.getLongitude()));
                                 mLastLocation = location;
                             } else {
                                 Log.d("getFileLocation", "LOCATION NULL");
@@ -289,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
             loc += "_loc" +Double.toString(mLastLocation.getLatitude()) +"_" +Double.toString(mLastLocation.getLongitude()) +"_";
         }
 
-        Log.d("getLocationString", loc);
+//        Log.d("getLocationString", loc);
 
         return loc;
     }

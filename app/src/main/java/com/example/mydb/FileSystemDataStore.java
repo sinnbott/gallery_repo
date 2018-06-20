@@ -25,12 +25,23 @@ public class FileSystemDataStore implements IDataStore {
         String picture = "";
         try {
             picture = gallery.get(pictureIndex);
-            Log.d("getPicture", "total files: " +Double.toString(gallery.size()) +", current file: " +Integer.toString(pictureIndex));
-            Log.d("getPicture", picture);
+//            Log.d("getPicture", "total files: " +Double.toString(gallery.size()) +", current file: " +Integer.toString(pictureIndex));
+//            Log.d("getPicture", picture);
         } catch (Exception e) {
-            Log.e("getPicture","no picture to display!");
+//            Log.e("getPicture","no picture to display!");
         }
         return picture;
+    }
+
+    public ArrayList<String> getPictures() {
+
+        ArrayList<String> paths = new ArrayList<String>();
+
+        for(int i = 0; i < gallery.size(); i++) {
+            paths.add(gallery.get(i));
+        }
+
+        return paths;
     }
 
     public void setSearchParams(Bundle extras) {
@@ -58,7 +69,7 @@ public class FileSystemDataStore implements IDataStore {
         try {
             mStartDate = dateFormat.parse(start);
         } catch (ParseException ex) {
-            Log.e("search", "parse start date failed: [" +start +"]");
+//            Log.e("search", "parse start date failed: [" +start +"]");
             Date tmpDate = new Date(0);
             String tmpDateStamp = dateFormat.format(tmpDate);
             try {
@@ -71,7 +82,7 @@ public class FileSystemDataStore implements IDataStore {
         try {
             mEndDate = dateFormat.parse(end);
         } catch (ParseException ex) {
-            Log.e("search", "parse end date failed: [" +end +"]");
+//            Log.e("search", "parse end date failed: [" +end +"]");
             mEndDate = new Date(Long.MAX_VALUE);
         }
     }
@@ -150,7 +161,7 @@ public class FileSystemDataStore implements IDataStore {
             exifInterface.saveAttributes();
             return true;
         } catch (Exception e) {
-            Log.e("save", "error saving exif image description");
+//            Log.e("save", "error saving exif image description");
             return false;
         }
     }
@@ -162,7 +173,7 @@ public class FileSystemDataStore implements IDataStore {
             ExifInterface exifInterface = new ExifInterface(_picture);
             keywords = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
         } catch (Exception e) {
-            Log.e("onCreate", "error getting exif data");
+//            Log.e("onCreate", "error getting exif data");
         } //ImageDescription
 
         return keywords;
@@ -196,24 +207,15 @@ public class FileSystemDataStore implements IDataStore {
         if (fList != null) {
             for(File f: file.listFiles()) {
                 picPath = f.getPath();
-//                picDateString = f.getPath().split("_")[1];
-
-//                Log.d("populateGallery", "min:[" + dateFormat.format(minDate) + "]  "
-//                        + "max:[" + dateFormat.format(maxDate) + "]  "
-//                        + "current:[" + picDateString + "]");
-//                    picDate = dateFormat.parse(picDateString);
-                    if ( searchDate(picPath) ) {
-                        if ( searchLocation(picPath) )
-                            if (searchKeywords(f.getPath())) {
-                                gallery.add(f.getPath());
-                            }
+                if ( searchDate(picPath) ) {
+                    if ( searchLocation(picPath) ) {
+                        if (searchKeywords(f.getPath())) {
+                            gallery.add(f.getPath());
+                        }
                     }
-//                }
-//                i++;
+                }
             }
         }
-        Log.d("populateGallery", "finalCount" +Integer.toString(gallery.size()));
-
         if (gallery.size() > 0) {
             pictureIndex = gallery.size() - 1;
             picture = gallery.get(pictureIndex);
@@ -253,7 +255,7 @@ public class FileSystemDataStore implements IDataStore {
                 if (picPath.indexOf("_loc") > -1) {
                     picLat = Double.parseDouble(picPath.split("_loc")[1].split("_")[0]);
                     picLong = Double.parseDouble(picPath.split("_loc")[1].split("_")[1]);
-                    Log.d("populateGallery loc", "locations:" +picLat.toString() +'/' +picLong.toString());
+//                    Log.d("populateGallery loc", "locations:" +picLat.toString() +'/' +picLong.toString());
 
                     if ( (mLocBot != null && picLat >= mLocBot) && ( mLocTop != null && picLat <= mLocTop ) ) {
                         if ( ( mLocLeft != null && picLong >= mLocLeft ) && ( mLocRight != null && picLong <= mLocRight ) ) {

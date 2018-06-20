@@ -25,8 +25,8 @@ public class ImageViewMatcher {
                 Date testDate = new Date();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
                 String testDateString = dateFormat.format(testDate);
-                Log.d("hasTag expected", testDateString);
-                Log.d("hasTag actual", testTag);
+//                Log.d("hasTag expected", testDateString);
+//                Log.d("hasTag actual", testTag);
                 return testDateString.equals(testTag);
             }
         };
@@ -41,7 +41,7 @@ public class ImageViewMatcher {
 
             @Override
             protected boolean matchesSafely(ImageView iv) {
-                Log.d("hasDrawable", iv.getDrawable().toString());
+//                Log.d("hasDrawable", iv.getDrawable().toString());
                 return iv.getDrawable() != null;
             }
         };
