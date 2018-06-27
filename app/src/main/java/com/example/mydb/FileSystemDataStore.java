@@ -166,6 +166,40 @@ public class FileSystemDataStore implements IDataStore {
         }
     }
 
+    public boolean addKeyords(String _picture, String keywords) {
+        String current = getKeywords(_picture);
+        current = (current == null) ? "" : current;
+
+        String[] arrKeywords = keywords.split(",");
+        String word = "";
+
+        for(int i = 0; i < arrKeywords.length; i++) {
+            word = arrKeywords[i].trim();
+            if (word != null && word != "") {
+                if (current == "") {
+                    current = word;
+                }
+                else if (!current.contains(word)) {
+                    current += ", " + word;
+                }
+            }
+        }
+
+        return savePicture(_picture, current);
+    }
+
+    public boolean saveMultiple(ArrayList<String> _pictures, String keywords) {
+        try {
+            boolean success = false;
+            for (int i = 0; i < _pictures.size(); i++) {
+                success = addKeyords(_pictures.get(i), keywords);
+            }
+            return success;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public String getKeywords(String _picture) {
         String keywords = "";
 

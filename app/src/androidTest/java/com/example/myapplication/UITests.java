@@ -10,6 +10,7 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.Espresso.pressBack;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static android.support.test.espresso.action.ViewActions.replaceText;
 import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 
@@ -40,6 +41,13 @@ public class UITests {
         for (int i = 0; i <= 5; i++) {
             onView(withId(R.id.btnLeft)).perform(click());
         }
+
+        onView(withId(R.id.btnShowSearch)).perform(click());
+        onView(withId(R.id.textStartDate)).perform(typeText("05/01/2018"), closeSoftKeyboard());
+        onView(withId(R.id.btnSearch)).perform(click());
+        for (int i = 0; i <= 5; i++) {
+            onView(withId(R.id.btnLeft)).perform(click());
+        }
     }
 
     @Test public void TestFilterLocation() {
@@ -55,10 +63,35 @@ public class UITests {
     @Test
     public void TestKeywordFilter() {
         onView(withId(R.id.btnShowSearch)).perform(click());
-        onView(withId(R.id.textKeywordSearch)).perform(typeText("testval"), closeSoftKeyboard());
+        onView(withId(R.id.textKeywordSearch)).perform(typeText("red"), closeSoftKeyboard());
         onView(withId(R.id.btnSearch)).perform(click());
         for (int i = 0; i <= 5; i++) {
             onView(withId(R.id.btnLeft)).perform(click());
         }
+    }
+
+    @Test
+    public void TestAddKeyword() {
+        for (int i = 0; i < 7; i++) {
+            onView(withId(R.id.btnRight)).perform(click());
+        }
+        onView(withId(R.id.imageView)).perform(click());
+        onView(withId(R.id.textKeywordEntry)).perform(replaceText("red42, autoinsertedKeyword, WOWTHISISATEST"), closeSoftKeyboard());
+        onView(withId(R.id.btnSave)).perform(click());
+
+        for (int i = 0; i < 3; i++) {
+            onView(withId(R.id.btnLeft)).perform(click());
+        }
+        onView(withId(R.id.imageView)).perform(click());
+        onView(withId(R.id.textKeywordEntry)).perform(replaceText(""), closeSoftKeyboard());
+        onView(withId(R.id.btnSave)).perform(click());
+
+        onView(withId(R.id.imageView)).perform(click());
+        onView(withId(R.id.textKeywordEntry)).perform(replaceText("24r356egdf"), closeSoftKeyboard());
+        onView(withId(R.id.btnCancel)).perform(click());
+
+        onView(withId(R.id.imageView)).perform(click());
+        onView(withId(R.id.textKeywordEntry)).perform(replaceText("24r356egdf"), closeSoftKeyboard());
+        pressBack();
     }
 }

@@ -10,6 +10,10 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
 
+import junit.framework.AssertionFailedError;
+
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,8 +53,12 @@ public class TakePictureTests {
     @Test
     public void testTakePhoto() {
         // Click on the button that will trigger the stubbed intent.
-        onView(withId(R.id.btnShowSnap)).perform(click());
 
+        // Test taking photo takes < 500ms
+        Long t1 = System.currentTimeMillis();
+        onView(withId(R.id.btnShowSnap)).perform(click());
+        Long t2 = System.currentTimeMillis();
+        assertTrue("Should take <500 ms to take a photo", (t2 - t1) < 500);
         // With no user interaction, the ImageView will have a drawable.
         onView(withId(R.id.imageView)).check(matches(hasTag()));
 
@@ -82,6 +90,28 @@ public class TakePictureTests {
         onView(withId(R.id.textKeywordEntry)).perform(typeText("thesekeywordswillnotbesaved"), closeSoftKeyboard());
 
         onView(withId(R.id.btnCancel)).perform(click());
+    }
+
+    @Test
+    public void testTakePhotoReliability() {
+        int failures = 0;
+        int runs = 100;
+
+        for (int i = 0; i < runs; i++)
+        {
+            onView(withId(R.id.btnShowSnap)).perform(click());
+
+            try {
+                onView(withId(R.id.imageView)).check(matches(hasTag()));
+                onView(withId(R.id.imageView)).check(matches(hasDrawable()));
+            } catch (AssertionFailedError e) {
+                failures++;
+            }
+        }
+
+        assertTrue("Should have failures < 3 per 1000; actual["
+                +Integer.toString(failures) +"/" +Integer.toString(runs) +"]",
+                (failures / runs) < (3.00f / 1000.00f));
     }
 
     private ActivityResult createImageCaptureStub() {

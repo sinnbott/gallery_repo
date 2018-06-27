@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_ACTIVITY_SEARCH = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_ACTIVITY_KEYWORDS = 2;
+    static final int REQUEST_ACTIVITY_MULTI = 3;
 
     IDataStore storage;
 
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void clickMulti(View view) {
         Intent multiIntent = new Intent(this, MultiActivity.class);
-        startActivity(multiIntent);
+        startActivityForResult(multiIntent, REQUEST_ACTIVITY_MULTI);
     }
 
     private void dispatchTakePictureIntent() {
@@ -117,14 +118,11 @@ public class MainActivity extends AppCompatActivity {
 //                Log.e("File Creation", "Failed");
             }
 
-//            Log.d("createImageFile f2:", photoFile.getAbsolutePath());
             if (photoFile != null) {
                 Uri photoUri = FileProvider.getUriForFile(this,
                         "com.example.myapplication.fileprovider",
                         photoFile);
-//                Log.d("fileprovider...", photoUri.toString());
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-//                Log.d("createImageFile f3: ", takePictureIntent.getExtras().toString());
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
@@ -174,6 +172,16 @@ public class MainActivity extends AppCompatActivity {
                 toast.show();
             } else if (resultCode != RESULT_CANCELED) {
                 Toast toast = Toast.makeText(getApplicationContext(), "Error saving keywords...", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        }
+
+        if (requestCode == REQUEST_ACTIVITY_MULTI) {
+            if (resultCode == RESULT_OK) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Multiple pictures saved...", Toast.LENGTH_SHORT);
+                toast.show();
+            } else if (resultCode != RESULT_CANCELED) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Error saving multiple pictures...", Toast.LENGTH_SHORT);
                 toast.show();
             }
         }

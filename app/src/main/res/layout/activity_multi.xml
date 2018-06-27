@@ -34,7 +34,7 @@
     </ScrollView>
 
     <EditText
-        android:id="@+id/textMultipleKeywords"
+        android:id="@+id/txtMultipleKeywords"
         android:layout_width="322dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
@@ -54,7 +54,7 @@
         android:layout_width="162dp"
         android:layout_height="24dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/textMultipleKeywords"
+        app:layout_constraintBottom_toTopOf="@+id/txtMultipleKeywords"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -63,17 +63,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:onClick="save"
         android:text="@string/multi_save"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="73dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btnCancelMultiple" />
 
     <Button
         android:id="@+id/btnCancelMultiple"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:onClick="cancel"
         android:text="@string/multi_cancel"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="210dp" />
+        app:layout_constraintEnd_toStartOf="@+id/btnSaveMultiple"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

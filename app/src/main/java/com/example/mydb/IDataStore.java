@@ -9,6 +9,7 @@ import java.util.Date;
 public interface IDataStore {
     String getPicture();
     boolean savePicture(String _picture, String keywords);
+    boolean saveMultiple(ArrayList<String> _pictures, String keywords);
     ArrayList<String> getPictures();
     String createNewPicture(Date now, Location location);
     void nextPicture();
